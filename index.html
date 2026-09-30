@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Africa Invest Race</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+/* Layout: projector "trading floor" (navy) for the host, phone "order ticket" (paper) for teams. Colours from the group's deck. */
+:root{
+  --navy:#1C2E36; --navy-2:#243A44; --navy-3:#2E4752;
+  --paper:#F4F1EA; --paper-2:#E9E4D8; --ink:#1C2E36; --muted:#5E6B70;
+  --rust:#8B4A2F; --gold:#D4A857; --green:#3E7B63; --red:#B5462F; --line:#D6D0C2;
+  --up:#7FD1A8; --down:#F08A6E;
+  --display:"Arial Black","Helvetica Neue",Arial,sans-serif;
+  --body:"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+.lbl{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.btn{border:0;border-radius:6px;padding:14px 20px;font-weight:800;font-size:1rem;background:var(--navy);color:var(--paper)}
+.btn.alt{background:transparent;color:var(--navy);box-shadow:inset 0 0 0 2px var(--navy)}
+.btn.ghost{background:transparent;color:var(--paper);box-shadow:inset 0 0 0 2px #3b5561}
+.btn.gold{background:var(--gold);color:var(--navy)}
+.btn.rust{background:var(--rust);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.up{color:var(--up)}.down{color:var(--down)}
+
+/* landing */
+#landing{min-height:100%;display:grid;place-items:center;padding:24px 16px}
+.land{max-width:600px;width:100%;display:grid;gap:22px}
+.land h1{font-family:var(--display);font-size:clamp(2.2rem,8vw,3.6rem);line-height:.95;margin:0}
+.land h1 span{color:var(--rust)}
+.land p{margin:0;color:var(--muted);line-height:1.5}
+.btnrow{display:flex;gap:12px;flex-wrap:wrap}
+
+/* host */
+#host{min-height:100%;background:var(--navy);color:var(--paper);display:flex;flex-direction:column}
+.hbar{display:flex;align-items:center;gap:18px;padding:16px 32px;border-bottom:1px solid var(--navy-3);flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:1.1rem}
+.brand b{color:var(--gold);font-weight:inherit}
+.chip{background:var(--navy-2);border:1px solid var(--navy-3);border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:.9rem}
+.chip b{color:var(--gold)}
+.hspacer{flex:1}
+.rounds{display:flex;gap:6px}
+.rounds i{display:block;width:30px;height:6px;border-radius:3px;background:var(--navy-3)}
+.rounds i.on{background:var(--gold)} .rounds i.done{background:var(--green)}
+.hmain{flex:1;padding:26px 32px;display:grid;gap:22px;align-content:start}
+.hgrid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:26px;align-items:start}
+@media (max-width:1000px){.hgrid{grid-template-columns:1fr}}
+.kicker{color:var(--gold)}
+.htitle{font-family:var(--display);font-size:clamp(2rem,4vw,3.2rem);line-height:1;margin:6px 0 10px;text-wrap:balance}
+.hbrief{font-size:1.2rem;line-height:1.45;max-width:70ch;color:#D9D4C8;margin:0}
+.ptable{width:100%;border-collapse:collapse;font-size:1.05rem}
+.ptable th{text-align:left;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#9FAAAD;padding:8px 10px;border-bottom:1px solid var(--navy-3)}
+.ptable td{padding:11px 10px;border-bottom:1px solid var(--navy-3);vertical-align:middle}
+.ptable td.r,.ptable th.r{text-align:right}
+.ptable .an{font-weight:800}
+.ptable .ad{display:block;font-size:.85rem;color:#9FAAAD;font-weight:400;margin-top:2px}
+.ptable .pr{font-family:var(--display);font-size:1.25rem}
+.tag{display:inline-block;width:26px;height:26px;border-radius:5px;background:var(--gold);color:var(--navy);font-family:var(--display);text-align:center;line-height:26px;margin-right:10px;font-size:.9rem;vertical-align:middle}
+.side{display:grid;gap:14px;align-content:start}
+.panel{background:var(--navy-2);border:1px solid var(--navy-3);border-radius:8px;padding:18px}
+.timer{font-family:var(--display);font-size:4rem;line-height:1;color:var(--gold)}
+.timer.low{color:var(--down)}
+.sublist{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sublist span{font-size:.85rem;padding:4px 8px;border-radius:4px;background:var(--navy-3);color:#9FAAAD}
+.sublist span.ok{background:var(--green);color:#fff}
+.hactions{display:flex;gap:10px;flex-wrap:wrap}
+.event{background:var(--paper);color:var(--ink);border-radius:10px;padding:22px 24px;display:grid;gap:10px;animation:drop .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes drop{from{transform:translateY(-14px);opacity:.3}to{transform:none;opacity:1}}
+.event .lbl{color:var(--rust)}
+.event h2{font-family:var(--display);font-size:clamp(1.5rem,2.8vw,2.3rem);line-height:1.05;margin:0;text-wrap:balance}
+.event p{margin:0;font-size:1.08rem;line-height:1.45;max-width:80ch}
+.event .src{font-size:.82rem;color:var(--muted)}
+.event .course{font-size:.92rem;color:var(--green);font-weight:700}
+.chg{font-weight:800;font-size:1rem}
+.lb{display:grid;gap:6px}
+.lbrow{display:grid;grid-template-columns:26px minmax(0,1fr) auto 70px;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;background:var(--navy-3)}
+.lbrow .rk{font-family:var(--display);color:var(--gold)}
+.lbrow .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.lbrow .cp{font-family:var(--display)}
+.lbrow .dl{text-align:right;font-weight:700;font-size:.9rem}
+.whys{display:grid;gap:8px;margin-top:10px}
+.whys blockquote{margin:0;padding:8px 12px;background:var(--navy-3);border-radius:6px;font-size:.95rem;line-height:1.35}
+.whys blockquote b{color:var(--gold)}
+.lobby{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:900px){.lobby{grid-template-columns:1fr}}
+.joinbox{display:grid;gap:14px}
+.bigcode{font-family:var(--display);font-size:clamp(3.2rem,8vw,6.5rem);letter-spacing:.08em;color:var(--gold);line-height:1}
+.url{font-family:var(--mono);font-size:1rem;word-break:break-all;color:#D9D4C8}
+.qr{background:var(--paper);padding:14px;border-radius:8px;width:max-content;max-width:100%}
+.qr img{display:block;width:220px;height:220px;image-rendering:pixelated}
+.players{display:flex;flex-wrap:wrap;gap:8px}
+.players span{background:var(--paper);color:var(--navy);font-weight:800;padding:8px 12px;border-radius:5px;animation:drop .4s}
+.rules{margin:0;padding-left:1.2em;line-height:1.6;color:#D9D4C8}
+.seg{display:flex;gap:0;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 2px #3b5561;width:max-content}
+.seg button{background:transparent;color:var(--paper);border:0;padding:10px 16px;font-weight:800}
+.seg button.on{background:var(--gold);color:var(--navy)}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:end;max-width:900px}
+.pod{background:var(--navy-2);border:1px solid var(--navy-3);border-radius:8px 8px 0 0;padding:18px;text-align:center;display:grid;gap:6px}
+.pod .medal{font-family:var(--display);font-size:2.2rem;color:var(--gold)}
+.pod .who{font-weight:800;font-size:1.2rem;overflow-wrap:anywhere}
+.pod .cap{font-family:var(--display);font-size:1.6rem}
+.pod.p1{padding-block:34px 26px;border-color:var(--gold)}
+.lesson{background:var(--paper);color:var(--ink);border-radius:10px;padding:22px 24px}
+.lesson h2{font-family:var(--display);margin:0 0 8px;font-size:1.7rem;line-height:1.1}
+.lesson p{margin:0;font-size:1.1rem;line-height:1.5}
+.chart{width:100%;height:auto;display:block}
+.small{font-size:.8rem;color:#9FAAAD}
+.hfoot{padding:10px 32px;color:#7F8C90;font-size:.78rem;border-top:1px solid var(--navy-3)}
+
+/* player */
+#player{min-height:100%;display:flex;flex-direction:column;background:var(--paper)}
+.pbar{position:sticky;top:0;background:var(--navy);color:var(--paper);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;gap:10px;align-items:center;z-index:2}
+.pbar .brand{font-size:.95rem}
+.pbar .cap{margin-left:auto;font-family:var(--display);color:var(--gold)}
+.pmain{flex:1;padding:18px 16px 28px;display:grid;gap:14px;align-content:start;max-width:560px;width:100%;margin:0 auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+.field{display:grid;gap:6px}
+.field input,.field textarea{font:inherit;font-size:1.05rem;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%}
+.field input.code{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase}
+.field textarea{min-height:64px;resize:vertical}
+.ptitle{font-family:var(--display);font-size:1.5rem;line-height:1.05;margin:0;text-wrap:balance}
+.pmuted{color:var(--muted);margin:0;line-height:1.45}
+.arow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.arow .nm{font-weight:800;font-size:.95rem;line-height:1.2}
+.arow .sub{font-size:.8rem;color:var(--muted);margin-top:2px}
+.arow .sub b{color:var(--ink)}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:42px;height:42px;border-radius:8px;border:0;background:var(--paper-2);color:var(--ink);font-size:1.3rem;font-weight:800}
+.step button:disabled{opacity:.35}
+.step .v{min-width:30px;text-align:center;font-family:var(--display);font-size:1.15rem}
+.sheet{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-weight:700}
+.sheet .tot{border-top:2px solid var(--ink);padding-top:6px;font-family:var(--display)}
+.big{font-family:var(--display);font-size:2.4rem;line-height:1}
+.status{padding:10px 12px;border-radius:8px;background:var(--paper-2);font-weight:700}
+.status.ok{background:var(--green);color:#fff}
+.status.err{background:#F6D9CF;color:var(--red)}
+.ptimer{font-family:var(--display);color:var(--rust)}
+.rtab{width:100%;border-collapse:collapse;font-size:.92rem}
+.rtab td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.rtab td.r{text-align:right}
+</style>
+</head>
+<body>
+
+<section id="landing">
+  <div class="land">
+    <div class="lbl" style="color:var(--rust)">Geopolitics &amp; Strategic Foresight</div>
+    <h1>Africa Invest Race<br><span>2022 → 2030</span></h1>
+    <p>Each team gets $100. You buy shares (units) of seven investments. A real event changes the prices. Then you sell everything, get your new budget, and buy again. The team with the most money at the end wins.</p>
+    <div class="btnrow">
+      <button class="btn rust" id="goJoin">Join a game</button>
+      <button class="btn alt" id="goHost">Host on the big screen</button>
+    </div>
+    <p class="pmuted" style="font-size:.85rem">No account needed. Open the link, type the game code, pick a team name.</p>
+  </div>
+</section>
+
+<section id="host" class="hidden">
+  <header class="hbar">
+    <div class="brand">AFRICA <b>INVEST RACE</b></div>
+    <div class="chip">Game code <b id="hCode">—</b></div>
+    <div class="hspacer"></div>
+    <div class="rounds" id="hRounds"></div>
+    <div class="chip" id="hConn">connecting…</div>
+  </header>
+  <main class="hmain" id="hMain"></main>
+  <footer class="hfoot">Prices are simplified for the game. Events 1–4 are real and sourced (the port loan is a game example); event 5 is a scenario.</footer>
+</section>
+
+<section id="player" class="hidden">
+  <header class="pbar">
+    <div class="brand">AFRICA INVEST RACE</div>
+    <div class="chip" id="pRound" style="background:transparent;border-color:#3b5561">Lobby</div>
+    <div class="cap num" id="pCap">$100.0</div>
+  </header>
+  <main class="pmain" id="pMain"></main>
+</section>
+
+<script>
+(() => {
+'use strict';
+/* ================= CONTENT ================= */
+const START = 100, ROUND_SECONDS = 120;
+const ASSETS = [
+  {n:'African Consumer Markets', d:'Shops, phones, food brands for a young, urban population'},
+  {n:'African Fintech', d:'Fintech (finance + tech): M-Pesa, Paystack, Moniepoint… in Lagos & Nairobi'},
+  {n:'African Mining', d:'Cobalt and copper sold raw (not processed)'},
+  {n:'Chinese Battery Makers', d:'Buy African metals, make electric-car batteries in China'},
+  {n:'African Infrastructure & Affordable Housing', d:'Ports, railways, internet cables, low-cost homes'},
+  {n:'US Tech Platforms', d:'Big Tech and AI (Google, Microsoft…), based in the US'},
+  {n:'BRI Port Loan', d:'BRI (Belt and Road = China’s “New Silk Roads”): lend to an African government for a Chinese-built port. Pays good interest'}
+];
+const L = ['A','B','C','D','E','F','G'];
+// m = price multipliers applied at the reveal, in ASSETS order
+const EVENTS = [
+  { year:'2022', title:'Dollar & wheat shock',
+    brief:'Russia attacks Ukraine. Ships can no longer take wheat out of the Black Sea. In the US, the Fed (the central bank) raises interest rates, so the dollar becomes stronger. Many African countries owe money in dollars.',
+    h:'Wheat and fertiliser prices explode',
+    t:'Food becomes more expensive for African families. Countries that sell raw materials earn more. Debts in dollars are harder to repay. US tech shares fall.',
+    src:'Sources: FAO (UN food agency); World Bank commodity prices.',
+    course:'Course link: food used as a weapon (presentation “Weaponizing wheat”).',
+    m:[0.85,1.00,1.15,0.95,0.95,0.75,1.05] },
+  { year:'2023', title:'Naira & ChatGPT',
+    brief:'Nigeria stops fixing the value of its currency, the naira. Everyone watches what happens next. In the US, ChatGPT (an AI chatbot) has just come out.',
+    h:'The naira crashes, AI booms',
+    t:'The naira loses about 70% of its value against the dollar. Nigerian shoppers lose buying power. Foreign investors leave Nigerian start-ups (young tech companies): they raised $1.8bn in 2021, only $343M in 2025. At the same time, AI makes US tech shares jump.',
+    src:'Sources: BusinessDay (₦469.50 → ₦1,535 per dollar); Africa: The Big Deal via Techish (Jan. 2026).',
+    course:'Our Part III: money is the second limit of the hubs.',
+    m:[0.85,0.90,0.95,0.90,1.05,1.40,1.05] },
+  { year:'2024', title:'Red Sea, Lobito & a US ally',
+    brief:'Houthi rebels (an armed group in Yemen) attack ships in the Red Sea. The US and the EU pay for the Lobito Corridor (a railway from the mines to the Atlantic Ocean). Kenya’s president visits Washington.',
+    h:'Ships go around Africa, Kenya leans West',
+    t:'Ships avoid the Red Sea and sail around Africa: Egypt’s Suez Canal (the shortcut between Asia and Europe) loses more than 60% of its income, and transport costs more for Chinese exporters. African ports and railways win. The US names Kenya a major ally, and Microsoft and G42 (an AI company from the Emirates) announce a $1bn data centre (a giant computer building) in Kenya.',
+    src:'Sources: Suez Canal Authority via Ahram Online; European Commission (Lobito); US Department of State; Microsoft (May 2024).',
+    course:'Our Parts II & III: Lobito and the US–China tech war. Course link: shipping routes.',
+    m:[1.05,1.15,0.95,0.85,1.15,1.20,1.05] },
+  { year:'2025', title:'Who keeps the value?',
+    brief:'The DRC (Democratic Republic of Congo) is tired of selling raw cobalt (a battery metal) cheaply. Kenya’s power grid (electricity network) is small. Nigeria keeps all its doors open. And one African government is struggling to repay the loan for its port, built with Chinese money…',
+    h:'Cobalt export ban, a blocked data centre and a port loan that fails',
+    t:'The DRC bans exports of raw cobalt, so battery makers pay more. In Kenya, the data centre could need up to 1 GW of power, but the whole country produces only 3.8 GW: the project is blocked. Nigeria becomes a BRICS partner country. The government cannot repay its port loan: lenders lose half their money and China controls the port for many years. This is the “debt trap”, like Hambantota in Sri Lanka.',
+    src:'Sources: Mining.com (Feb. 2025); Global Finance (2026); BRICS presidency (Jan. 2025). The port case is a game example.',
+    course:'Our Parts II & III. Course link: debt trap and the BRI (Manon, Elsa & Lili’s presentation).',
+    m:[1.10,1.20,1.05,0.85,1.10,0.95,0.55] },
+  { year:'2030', title:'Scenario: cities for whom?',
+    brief:'This is a scenario, not a real event. It is 2030. The AfCFTA (the African free trade area) is working. Cities are growing fast. Big money still goes to prestige projects (show-off buildings), but Africa misses about 50 million homes.',
+    h:'Scenario: Africa’s single market takes off',
+    t:'African countries trade much more with each other. People in cities spend more, pay by phone and need homes. Countries that fix land titles (official proof you own your land) and housing loans unlock the real market: affordable homes. Raw materials lose value. The companies that build inside Africa win.',
+    src:'Based on: World Bank (AfCFTA: up to +9% real income by 2035); CAHF (housing finance in Africa).',
+    course:'Our Part IV: Eko Atlantic vs Makoko. Strategic foresight: a scenario, not a forecast.',
+    m:[1.35,1.30,0.90,1.00,1.35,0.95,1.00] }
+];
+const MODES = {5:[0,1,2,3,4], 3:[1,3,4]};
+
+/* ================= UTILS ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r1 = x => Math.round(x * 10) / 10;
+const r2 = x => Math.round(x * 100) / 100;
+const $$ = x => '$' + r1(x).toFixed(1);
+const pct = p => (p > 0 ? '+' : '') + Math.round(p) + '%';
+const store = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const newCode = () => Array.from({length:5}, () => ABC[Math.floor(Math.random() * ABC.length)]).join('');
+const rid = () => Math.random().toString(36).slice(2, 10);
+
+/* price path: prices[k] = prices before decision k (k = 0..n), prices[n] = final */
+function pricePath(seq){
+  const P = [ASSETS.map(() => 10)];
+  seq.forEach(ei => P.push(P[P.length - 1].map((p, i) => r1(p * EVENTS[ei].m[i]))));
+  return P;
+}
+/* one round: buy units at `buy` prices, sell at `sell` prices, keep the rest as cash */
+function settle(budget, units, buy, sell){
+  const u = units || ASSETS.map(() => 0);
+  const cost = r2(u.reduce((s, x, i) => s + x * buy[i], 0));
+  if (cost > budget + 1e-6) return {ok:false, budget};
+  const cash = r2(budget - cost);
+  return {ok:true, cost, cash, budget: r2(u.reduce((s, x, i) => s + x * sell[i], 0) + cash)};
+}
+
+/* ================= RELAY: ntfy.sh (public HTTPS pub/sub, no account) ================= */
+function relay(code, onMsg, onConn){
+  const topic = 'afr-invest-v2-' + code.toUpperCase();
+  const seen = new Set(); let retry = 0;
+  const open = () => {
+    const es = new EventSource(`https://ntfy.sh/${topic}/sse?since=all`);
+    es.onopen = () => { retry = 0; onConn(true); };
+    es.onmessage = e => {
+      let o; try { o = JSON.parse(e.data); } catch(x){ return; }
+      if (o.event !== 'message' || seen.has(o.id)) return;
+      seen.add(o.id);
+      try { onMsg(JSON.parse(o.message)); } catch(x){}
+    };
+    es.onerror = () => { onConn(false); es.close(); setTimeout(open, Math.min(8000, 1000 * (++retry))); };
+  };
+  open();
+  return { async send(msg){
+    for (let i = 0; i < 8; i++){
+      try {
+        const r = await fetch(`https://ntfy.sh/${topic}`, {method:'POST', body: JSON.stringify(msg)});
+        if (r.ok) return true;
+        if (r.status !== 429) throw new Error(r.status);
+      } catch(e){}
+      await new Promise(res => setTimeout(res, 2500 + i * 1500));
+    }
+    return false;
+  }};
+}
+
+/* ================= ROUTING ================= */
+const params = new URLSearchParams(location.search);
+const show = id => ['landing','host','player'].forEach(x => $('#' + x).classList.toggle('hidden', x !== id));
+$('#goJoin').onclick = () => startPlayer('');
+$('#goHost').onclick = () => startHost();
+if (params.get('join') !== null) startPlayer(params.get('join') || '');
+else if (params.get('host') !== null) startHost();
+
+/* ================= HOST ================= */
+function startHost(){
+  show('host');
+  const KEY = 'afr-invest-v2-host';
+  let S = store.get(KEY);
+  if (!S || !S.code || (S.phase === 'final' && Date.now() - (S.t || 0) > 3 * 3600e3)) S = null;
+  if (!S) S = {code:newCode(), mode:5, phase:'lobby', k:-1, players:{}, subs:{}, endsAt:0, t:Date.now()};
+  const save = () => { S.t = Date.now(); store.set(KEY, S); };
+  save();
+  $('#hCode').textContent = S.code;
+  const joinUrl = location.origin + location.pathname + '?join=' + S.code;
+  const seq = () => MODES[S.mode];
+  const P = () => pricePath(seq());
+
+  const net = relay(S.code, m => {
+    const name = String(m.n || 'Team').slice(0, 20);
+    if (m.t === 'join' && m.id){
+      if (!S.players[m.id]) S.players[m.id] = {n:name, b:START, hist:[START]};
+      else S.players[m.id].n = name;
+      save(); render();
+    } else if (m.t === 'buy' && m.id && Number.isInteger(m.k)){
+      if (!S.players[m.id]) S.players[m.id] = {n:name, b:START, hist:[START]};
+      if (S.phase !== 'buy' || m.k !== S.k || !Array.isArray(m.u)) return;
+      const u = ASSETS.map((_, i) => Math.max(0, Math.floor(+m.u[i] || 0)));
+      const pr = P()[S.k];
+      if (!settle(S.players[m.id].b, u, pr, pr).ok) return;   // over budget: ignore
+      (S.subs[S.k] = S.subs[S.k] || {})[m.id] = {u, why: String(m.why || '').slice(0, 140)};
+      save(); render();
+    }
+  }, ok => { const c = $('#hConn'); c.textContent = ok ? '● live' : '○ reconnecting'; c.style.color = ok ? 'var(--up)' : 'var(--down)'; });
+
+  const board = () => Object.entries(S.players).map(([id, p]) => ({id, n:p.n, b:p.b, d:p.hist.length > 1 ? p.b - p.hist[p.hist.length - 2] : 0})).sort((a, b) => b.b - a.b);
+  const broadcast = () => net.send({t:'state', phase:S.phase, k:S.k, mode:S.mode, endsAt:S.endsAt,
+    lb: board().map(x => [x.id, x.n, r2(x.b), r2(x.d)])});
+
+  function begin(k){ S.k = k; S.phase = 'buy'; S.endsAt = Date.now() + ROUND_SECONDS * 1000; S.subs[k] = S.subs[k] || {}; save(); render(); broadcast(); }
+  function reveal(){
+    const pr = P(), subs = S.subs[S.k] || {};
+    for (const [id, p] of Object.entries(S.players)){
+      const s = subs[id];
+      const res = settle(p.b, s ? s.u : null, pr[S.k], pr[S.k + 1]);
+      p.b = res.budget; p.hist.push(p.b);
+    }
+    S.phase = 'reveal'; save(); render(); broadcast();
+  }
+  function finish(){ S.phase = 'final'; save(); render(); broadcast(); }
+  function reset(){ store.set(KEY, null); location.search = '?host'; }
+
+  let tick;
+  function render(){
+    clearInterval(tick);
+    const M = $('#hMain'), n = seq().length, players = Object.values(S.players);
+    $('#hRounds').innerHTML = seq().map((_, i) => `<i class="${S.phase === 'final' || i < S.k || (i === S.k && S.phase === 'reveal') ? 'done' : i === S.k ? 'on' : ''}"></i>`).join('');
+
+    if (S.phase === 'lobby'){
+      M.innerHTML = `
+        <div class="lobby">
+          <div class="joinbox">
+            <div class="lbl kicker">Join the game</div>
+            <div class="bigcode num">${esc(S.code)}</div>
+            <div class="url">${esc(joinUrl)}</div>
+            <div class="qr" id="qr"></div>
+          </div>
+          <div class="side">
+            <div class="panel">
+              <div class="lbl kicker">How to play</div>
+              <ol class="rules">
+                <li>One phone per team. Every team starts with <b>$100</b>.</li>
+                <li>Buy units of seven investments at today’s prices. Money you don’t spend stays in your pocket.</li>
+                <li>A <b>real event</b> happens and prices go up or down.</li>
+                <li>Everything is sold at the new prices: that is your new budget.</li>
+                <li>Buy again. Most money at the end wins.</li>
+              </ol>
+            </div>
+            <div class="panel" style="display:grid;gap:10px">
+              <div class="lbl kicker">Game length</div>
+              <div class="seg"><button id="m5" class="${S.mode === 5 ? 'on' : ''}">5 rounds · 2022→2030</button><button id="m3" class="${S.mode === 3 ? 'on' : ''}">3 rounds · short</button></div>
+            </div>
+            <div class="panel">
+              <div class="lbl kicker">Teams in the room · ${players.length}</div>
+              <div class="players" style="margin-top:12px">${players.map(p => `<span>${esc(p.n)}</span>`).join('') || '<span style="background:var(--navy-3);color:#9FAAAD">Waiting for the first team…</span>'}</div>
+            </div>
+            <div class="hactions">
+              <button class="btn gold" id="hStart" ${players.length ? '' : 'disabled'}>Start round 1</button>
+              <button class="btn ghost" id="hNew">New game code</button>
+            </div>
+          </div>
+        </div>`;
+      try { const q = qrcode(0, 'M'); q.addData(joinUrl); q.make(); $('#qr').innerHTML = '<img alt="QR code to join the game" src="' + q.createDataURL(8, 0) + '">'; } catch(e){ $('#qr').classList.add('hidden'); }
+      $('#m5').onclick = () => { S.mode = 5; save(); render(); };
+      $('#m3').onclick = () => { S.mode = 3; save(); render(); };
+      $('#hStart').onclick = () => begin(0);
+      $('#hNew').onclick = reset;
+      return;
+    }
+
+    if (S.phase === 'buy' || S.phase === 'reveal'){
+      const E = EVENTS[seq()[S.k]], pr = P(), now = pr[S.k], next = pr[S.k + 1], subs = S.subs[S.k] || {}, rev = S.phase === 'reveal';
+      const table = `
+        <table class="ptable num">
+          <thead><tr><th>Asset</th><th class="r">${rev ? 'Old price' : 'Price today'}</th>${rev ? '<th class="r">New price</th><th class="r">Change</th>' : ''}</tr></thead>
+          <tbody>${ASSETS.map((a, i) => {
+            const ch = (next[i] / now[i] - 1) * 100;
+            return `<tr><td><span class="tag">${L[i]}</span><span class="an">${esc(a.n)}</span><span class="ad" style="margin-left:36px">${esc(a.d)}</span></td>
+              <td class="r pr">${$$(now[i])}</td>
+              ${rev ? `<td class="r pr">${$$(next[i])}</td><td class="r chg ${ch >= 0 ? 'up' : 'down'}">${pct(ch)}</td>` : ''}</tr>`;
+          }).join('')}</tbody>
+        </table>`;
+      const whys = Object.entries(subs).filter(([, s]) => s.why).slice(0, 4);
+      M.innerHTML = `
+        ${rev ? `<div class="event">
+            <div class="lbl">${esc(E.year)} · what really happened</div>
+            <h2>${esc(E.h)}</h2><p>${esc(E.t)}</p>
+            <div class="course">${esc(E.course)}</div><div class="src">${esc(E.src)}</div></div>`
+          : `<div><div class="lbl kicker">Round ${S.k + 1} of ${n} · ${esc(E.year)} · ${esc(E.title)}</div>
+            <h1 class="htitle">The news before the storm</h1><p class="hbrief">${esc(E.brief)}</p></div>`}
+        <div class="hgrid">
+          <div class="panel" style="padding:8px 14px;overflow-x:auto">${table}</div>
+          <div class="side">
+            ${rev ? `
+              <div class="panel"><div class="lbl kicker">Budgets after ${esc(E.year)}</div>
+                <div class="lb" style="margin-top:10px">${board().slice(0, 8).map((x, i) => `
+                  <div class="lbrow"><span class="rk">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="cp num">${$$(x.b)}</span><span class="dl num ${x.d >= 0 ? 'up' : 'down'}">${x.d >= 0 ? '+' : ''}${r1(x.d).toFixed(1)}</span></div>`).join('')}</div></div>
+              ${whys.length ? `<div class="panel"><div class="lbl kicker">Why did you choose these investments?</div><div class="whys">${whys.map(([id, s]) => `<blockquote><b>${esc(S.players[id] ? S.players[id].n : 'Team')}:</b> ${esc(s.why)}</blockquote>`).join('')}</div></div>` : ''}
+              <div class="hactions">${S.k < n - 1 ? `<button class="btn gold" id="hNext">Start round ${S.k + 2}</button>` : `<button class="btn gold" id="hFinal">Final results</button>`}</div>`
+            : `
+              <div class="panel"><div class="lbl kicker">Time to invest</div><div class="timer num" id="hTimer">--</div>
+                <div class="lbl" style="margin-top:14px;color:#9FAAAD">Portfolios locked in · ${Object.keys(subs).length}/${players.length}</div>
+                <div class="sublist">${Object.entries(S.players).map(([id, p]) => `<span class="${subs[id] ? 'ok' : ''}">${esc(p.n)} · ${$$(p.b)}</span>`).join('')}</div></div>
+              <div class="hactions"><button class="btn ghost" id="hMore">+30 s</button><button class="btn rust" id="hReveal">Reveal the event</button></div>`}
+          </div>
+        </div>`;
+      if (rev){ const a = $('#hNext'); if (a) a.onclick = () => begin(S.k + 1); const f = $('#hFinal'); if (f) f.onclick = finish; }
+      else {
+        const t = $('#hTimer');
+        const upd = () => { const s = Math.max(0, Math.round((S.endsAt - Date.now()) / 1000)); t.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); t.classList.toggle('low', s <= 15); };
+        upd(); tick = setInterval(upd, 500);
+        $('#hMore').onclick = () => { S.endsAt = Math.max(S.endsAt, Date.now()) + 30000; save(); broadcast(); upd(); };
+        $('#hReveal').onclick = reveal;
+      }
+      return;
+    }
+
+    if (S.phase === 'final'){
+      const lb = board(), top = [lb[1], lb[0], lb[2]], pr = P();
+      M.innerHTML = `
+        <div><div class="lbl kicker">Final results</div><h1 class="htitle">Winner: ${esc(lb[0] ? lb[0].n : '…')}</h1></div>
+        <div class="podium">${top.map((x, i) => x ? `<div class="pod ${i === 1 ? 'p1' : ''}"><div class="medal">${i === 1 ? '1st' : i === 0 ? '2nd' : '3rd'}</div><div class="who">${esc(x.n)}</div><div class="cap num">${$$(x.b)}</div><div class="small">${pct((x.b / START - 1) * 100)} since the start</div></div>` : '<div></div>').join('')}</div>
+        <div class="hgrid">
+          <div class="panel"><div class="lbl kicker">Prices of the seven investments ($10 at the start)</div>${chart(pr)}</div>
+          <div class="side">
+            <div class="panel"><div class="lb">${lb.map((x, i) => `<div class="lbrow"><span class="rk">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="cp num">${$$(x.b)}</span><span class="dl num ${x.b >= START ? 'up' : 'down'}">${pct((x.b / START - 1) * 100)}</span></div>`).join('')}</div></div>
+          </div>
+        </div>
+        <div class="lesson">
+          <div class="lbl" style="color:var(--rust)">So, why is the African market the market of the future?</div>
+          <h2>The winners built value in Africa.</h2>
+          <p>Payments (fintech), infrastructure and affordable homes end up as the strongest investments: they serve a young, urban and connected population, and the value stays in Africa. Those who only took raw materials out, or lent money without looking at the risk (the BRI port), lost. Great powers compete for Africa: it is the market of the future, and the winners are those who build there.</p>
+        </div>
+        <div class="hactions"><button class="btn ghost" id="hNew2">Start a new game</button></div>`;
+      $('#hNew2').onclick = reset;
+    }
+  }
+
+  function chart(pr){
+    const W = 680, H = 300, pl = 44, pr_ = 200, pt = 14, pb = 30;
+    const all = pr.flat(), max = Math.ceil(Math.max(...all) / 5) * 5, min = Math.floor(Math.min(...all) / 5) * 5;
+    const x = i => pl + i * (W - pl - pr_) / (pr.length - 1), y = v => pt + (max - v) / (max - min) * (H - pt - pb);
+    const cols = ['#D9D4C8','#D4A857','#9FAAAD','#F08A6E','#7FD1A8','#6FA8DC','#C98BD9'];
+    const years = ['Start'].concat(seq().map(ei => EVENTS[ei].year));
+    let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Price of each asset over the game">`;
+    for (let v = min; v <= max; v += 5) s += `<line x1="${pl}" x2="${W - pr_}" y1="${y(v)}" y2="${y(v)}" stroke="#2E4752"/><text x="${pl - 8}" y="${y(v) + 4}" fill="#9FAAAD" font-size="11" text-anchor="end">$${v}</text>`;
+    years.forEach((yr, i) => s += `<text x="${x(i)}" y="${H - 8}" fill="#9FAAAD" font-size="11" text-anchor="middle">${yr}</text>`);
+    const ends = ASSETS.map((a, i) => ({i, v: pr[pr.length - 1][i]})).sort((a, b) => b.v - a.v);
+    let lastY = -99; const labelY = {};
+    ends.forEach(e => { let yy = Math.max(y(e.v) + 4, lastY + 14); labelY[e.i] = yy; lastY = yy; });
+    ASSETS.forEach((a, i) => {
+      const pts = pr.map((row, j) => `${x(j)},${y(row[i])}`).join(' ');
+      s += `<polyline points="${pts}" fill="none" stroke="${cols[i]}" stroke-width="${i === 1 || i === 4 ? 3.5 : 2}" stroke-linejoin="round"/>`;
+      s += `<circle cx="${x(pr.length - 1)}" cy="${y(pr[pr.length - 1][i])}" r="3.5" fill="${cols[i]}"/>`;
+      s += `<text x="${W - pr_ + 10}" y="${labelY[i]}" fill="${cols[i]}" font-size="11.5" font-weight="700">${L[i]} ${esc(a.n.replace('African ', '').replace(' & Affordable Housing', '').replace(' & Housing', ''))} $${pr[pr.length - 1][i].toFixed(1)}</text>`;
+    });
+    return s + '</svg>';
+  }
+
+  render();
+  if (S.phase !== 'lobby') broadcast();
+}
+
+/* ================= PLAYER ================= */
+function startPlayer(prefill){
+  show('player');
+  const M = $('#pMain');
+  let code = (prefill || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+  let me = null, net = null, st = {phase:'lobby', k:-1, mode:5, lb:[]}, draft = null, sentFor = -1, lastUnits = {}, tick;
+  const saved = code ? store.get('afr-invest-v2-p-' + code) : null;
+  if (saved && saved.id && saved.n){ me = saved; connect(); } else askJoin();
+
+  function askJoin(err){
+    M.innerHTML = `
+      <div><div class="lbl" style="color:var(--rust)">Join the race</div><h1 class="ptitle">Africa Invest Race</h1></div>
+      <form class="card" id="jf" style="display:grid;gap:14px">
+        <div class="field"><label class="lbl" for="jCode">Game code</label><input id="jCode" class="code" maxlength="5" autocomplete="off" value="${esc(code)}" placeholder="ABCDE"></div>
+        <div class="field"><label class="lbl" for="jName">Team name</label><input id="jName" maxlength="20" autocomplete="off" placeholder="e.g. Lagos Lions"></div>
+        ${err ? `<div class="status err">${esc(err)}</div>` : ''}
+        <button class="btn rust" type="submit">Join</button>
+      </form>
+      <p class="pmuted">One phone per team. No account needed.</p>`;
+    $('#jf').onsubmit = e => {
+      e.preventDefault();
+      const c = $('#jCode').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), nm = $('#jName').value.trim().replace(/\s+/g, ' ');
+      if (c.length !== 5) return askJoin('The game code has 5 characters. It is on the big screen.');
+      if (!nm) return askJoin('Pick a team name.');
+      code = c; me = {id:rid(), n:nm.slice(0, 20)}; store.set('afr-invest-v2-p-' + code, me); connect();
+    };
+  }
+  function connect(){
+    M.innerHTML = `<div class="status">Connecting to game ${esc(code)}…</div>`;
+    net = relay(code, m => {
+      if (m.t === 'state'){ st = m; render(); }
+      else if (m.t === 'buy' && m.id === me.id){ sentFor = Math.max(sentFor, m.k); lastUnits[m.k] = m.u; }
+    }, () => {});
+    net.send({t:'join', id:me.id, n:me.n});
+    render();
+  }
+  const row = () => (st.lb || []).find(x => x[0] === me.id);
+  const budget = () => { const r = row(); return r ? r[2] : START; };
+
+  function render(){
+    clearInterval(tick);
+    const seq = MODES[st.mode || 5], n = seq.length, P = pricePath(seq);
+    $('#pCap').textContent = $$(budget());
+    $('#pRound').textContent = st.phase === 'lobby' || st.k < 0 ? 'Lobby' : st.phase === 'final' ? 'Final' : 'Round ' + (st.k + 1) + '/' + n;
+
+    if (st.phase === 'lobby' || st.k < 0){
+      M.innerHTML = `
+        <div class="card" style="display:grid;gap:8px"><div class="lbl" style="color:var(--green)">You're in</div><div class="big">${esc(me.n)}</div>
+          <p class="pmuted">Budget: <b>$100</b>. Watch the big screen: round 1 starts soon.</p></div>
+        <div class="card"><div class="lbl">How it works</div><p class="pmuted" style="margin-top:6px">Buy units of seven investments at today's prices. A real event changes the prices. Everything is sold at the new prices, you get a new budget and you buy again.</p></div>
+        <button class="btn alt" id="pLeave">Not your team? Change name</button>`;
+      $('#pLeave').onclick = () => { store.set('afr-invest-v2-p-' + code, null); me = null; askJoin(); };
+      return;
+    }
+    const E = EVENTS[seq[st.k]], now = P[st.k], next = P[st.k + 1], B = budget();
+
+    if (st.phase === 'buy'){
+      if (!draft || draft.k !== st.k) draft = {k:st.k, u:(lastUnits[st.k] || ASSETS.map(() => 0)).slice(), why:''};
+      const cost = r2(draft.u.reduce((s, x, i) => s + x * now[i], 0)), cash = r2(B - cost), sent = sentFor >= st.k;
+      M.innerHTML = `
+        <div><div class="lbl" style="color:var(--rust)">Round ${st.k + 1}/${n} · ${esc(E.year)} · <span class="ptimer num" id="pT">--</span></div><h1 class="ptitle">${esc(E.title)}</h1></div>
+        <p class="pmuted">${esc(E.brief)}</p>
+        ${ASSETS.map((a, i) => `
+          <div class="arow"><div><div class="nm">${L[i]}. ${esc(a.n)}</div><div class="sub num">${esc(a.d)}<br>Price <b>${$$(now[i])}</b> · spent <b>${$$(draft.u[i] * now[i])}</b></div></div>
+            <div class="step"><button type="button" data-i="${i}" data-d="-1" ${draft.u[i] ? '' : 'disabled'} aria-label="One unit less of ${esc(a.n)}">−</button><span class="v num">${draft.u[i]}</span>
+              <button type="button" data-i="${i}" data-d="1" ${cash + 1e-6 >= now[i] ? '' : 'disabled'} aria-label="One unit more of ${esc(a.n)}">+</button></div></div>`).join('')}
+        <div class="card sheet num"><span>Budget at the start of the round</span><span>${$$(B)}</span><span>Total invested</span><span>${$$(cost)}</span><span class="tot">Money kept</span><span class="tot">${$$(cash)}</span></div>
+        <div class="field"><label class="lbl" for="pWhy">Why did you choose these investments? (optional)</label><textarea id="pWhy" maxlength="140" placeholder="e.g. The naira is at risk, we buy Kenya…">${esc(draft.why)}</textarea></div>
+        <div id="pMsg">${sent ? '<div class="status ok">Portfolio sent. You can still change it until the event is revealed.</div>' : ''}</div>
+        <button class="btn rust" id="pSend">${sent ? 'Update my portfolio' : 'Lock in my portfolio'}</button>`;
+      M.querySelectorAll('.step button').forEach(b => b.onclick = () => { const i = +b.dataset.i; draft.u[i] = Math.max(0, draft.u[i] + (+b.dataset.d)); draft.why = $('#pWhy').value; render(); });
+      $('#pWhy').oninput = e => { draft.why = e.target.value; };
+      $('#pSend').onclick = async () => {
+        $('#pSend').disabled = true; $('#pMsg').innerHTML = '<div class="status">Sending…</div>';
+        const ok = await net.send({t:'buy', id:me.id, n:me.n, k:st.k, u:draft.u, why:draft.why.trim().slice(0, 140)});
+        if (ok){ sentFor = st.k; lastUnits[st.k] = draft.u.slice(); render(); }
+        else { $('#pMsg').innerHTML = '<div class="status err">Could not send. Check your connection and tap again.</div>'; $('#pSend').disabled = false; }
+      };
+      const t = $('#pT'); const upd = () => { const s = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)); t.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+      upd(); tick = setInterval(upd, 500);
+      return;
+    }
+
+    const lb = st.lb || [], idx = lb.findIndex(x => x[0] === me.id), r = lb[idx];
+    if (st.phase === 'reveal'){
+      const u = lastUnits[st.k] || ASSETS.map(() => 0), prevB = r ? r2(r[2] - r[3]) : START;
+      const cost = r2(u.reduce((s, x, i) => s + x * now[i], 0));
+      M.innerHTML = `
+        <div><div class="lbl" style="color:var(--rust)">${esc(E.year)} · result</div><h1 class="ptitle">${esc(E.h)}</h1></div>
+        <div class="card"><table class="rtab num"><tbody>
+          ${ASSETS.map((a, i) => u[i] ? `<tr><td>${L[i]}. ${esc(a.n)}</td><td class="r">${u[i]} × ${$$(next[i])}</td><td class="r"><b>${$$(u[i] * next[i])}</b></td></tr>` : '').join('')}
+          <tr><td>Money kept</td><td></td><td class="r"><b>${$$(prevB - cost)}</b></td></tr>
+          <tr><td><b>New budget</b></td><td></td><td class="r"><b>${$$(r ? r[2] : START)}</b></td></tr></tbody></table></div>
+        <div class="card" style="display:grid;gap:4px"><div class="lbl">This round</div><div class="big num" style="color:${r && r[3] < 0 ? 'var(--red)' : 'var(--green)'}">${r && r[3] >= 0 ? '+' : ''}${$$(r ? r[3] : 0).replace('$-', '−$')}</div>
+          <div class="pmuted">${idx >= 0 ? `Rank <b>${idx + 1}</b> of ${lb.length}` : ''} · ${pct(((r ? r[2] : START) / START - 1) * 100)} since the start</div></div>
+        <p class="pmuted">Next round: you rebuy at the new prices.</p>`;
+      return;
+    }
+    if (st.phase === 'final'){
+      M.innerHTML = `
+        <div><div class="lbl" style="color:var(--rust)">Final results</div><h1 class="ptitle">${idx === 0 ? 'You won the race!' : 'Race over'}</h1></div>
+        <div class="card" style="display:grid;gap:6px"><div class="lbl">Final budget</div><div class="big num">${$$(r ? r[2] : START)}</div>
+          <div class="pmuted">${idx >= 0 ? `Rank <b>${idx + 1}</b> of ${lb.length} · ` : ''}${pct(((r ? r[2] : START) / START - 1) * 100)} since the start</div></div>
+        <div class="card"><b>The lesson:</b> <span class="pmuted">the winners built value in Africa. It is the market of the future for those who build there.</span></div>`;
+    }
+  }
+}
+})();
+</script>
+</body>
+</html>
